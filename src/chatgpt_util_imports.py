@@ -11,6 +11,8 @@ For an outline of the DX7 SysEx patch structure, see this useful note:
     https://homepages.abdn.ac.uk/d.j.benson/pages/dx7/sysex-format.txt
 """
 
+import random
+
 def unpack_patch(bulk):
     def read_byte(offset, mask=0b01111111, shift=0):
         return (bulk[offset] & mask) >> shift
@@ -141,7 +143,6 @@ def pack_patch(parameters):
 
     return packed_data
 
-# Generating the SysEx message for 32 patches
 def generate_sysex_with_corrected_checksum(data):
     # Create a SysEx message for 32 patches
     sysex_start = bytes([0xF0, 0x43, 0x00, 0x09, 0x20, 0x00])
@@ -153,8 +154,6 @@ def generate_sysex_with_corrected_checksum(data):
 def write_sysex_to_file(sysex_data, filename):
     with open(filename, 'wb') as sysex_file:
         sysex_file.write(sysex_data)
-
-import random
 
 def example():
     # Load the dataset from compact.bin
