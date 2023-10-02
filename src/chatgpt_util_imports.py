@@ -109,7 +109,7 @@ def pack_patch(parameters):
         write_byte(base_offset + 9, parameters[f"{op} KBD LEV SCL LFT DEPTH"])
         write_byte(base_offset + 10, parameters[f"{op} KBD LEV SCL RHT DEPTH"])
         packed_data[base_offset + 11] = pack_byte(parameters[f"{op} KBD LEV SCL RHT CURVE"], parameters[f"{op} KBD LEV SCL LFT CURVE"])
-        packed_data[base_offset + 12] = pack_byte(parameters[f"{op} OSC DETUNE"], parameters[f"{op} KBD RATE SCALING"])
+        packed_data[base_offset + 12] = pack_byte(parameters[f"{op} KBD RATE SCALING"], parameters[f"{op} OSC DETUNE"])
         packed_data[base_offset + 13] = pack_byte(parameters[f"{op} KEY VEL SENSITIVITY"], parameters[f"{op} AMP MOD SENSITIVITY"])
         write_byte(base_offset + 14, parameters[f"{op} OPERATOR OUTPUT LEVEL"])
         packed_data[base_offset + 15] = ((parameters[f"{op} OSC MODE"] << 6) & 0x40) | (parameters[f"{op} OSC FREQ COARSE"] & 0x3F)
@@ -125,7 +125,7 @@ def pack_patch(parameters):
     write_byte(108, parameters["PITCH EG level 3"])
     write_byte(109, parameters["PITCH EG level 4"])
     packed_data[110] = parameters["ALGORITHM #"] & 0x3F
-    packed_data[111] = pack_byte(parameters["OSCILLATOR SYNC"], parameters["FEEDBACK"])
+    packed_data[111] = pack_byte(parameters["FEEDBACK"], parameters["OSCILLATOR SYNC"])
     write_byte(112, parameters["LFO SPEED"])
     write_byte(113, parameters["LFO DELAY"])
     write_byte(114, parameters["LFO PITCH MOD DEPTH"])
@@ -154,14 +154,31 @@ def write_sysex_to_file(sysex_data, filename):
     with open(filename, 'wb') as sysex_file:
         sysex_file.write(sysex_data)
 
-def example(dataset):
-    # Pack the first 32 patches
+import random
+
+def example():
+    # Load the dataset from compact.bin
+    dataset = generate_dataset("data/compact.bin")  # Replace with the actual path to compact.bin
+
+    # Select 32 random patches
+    random_patches = random.sample(dataset, 32)
+    
+    # Remove voice names
+    for patch in random_patches:
+        if "VOICE NAME" in patch:
+            del patch["VOICE NAME"]
+
+    # Pack the selected patches
     packed_patches = bytearray()
-    for patch in dataset[:32]:
+    for patch in random_patches:
         packed_patches += pack_patch(patch)
 
-    # Generate the SysEx message for 32 patches
+    # Generate the SysEx message for the selected patches
     sysex_data_32_patches = generate_sysex_with_corrected_checksum(packed_patches)
 
-    # Example usage
-    write_sysex_to_file(sysex_data_32_patches, "output_filename.syx")
+    # Write the SysEx message to a file
+    write_sysex_to_file(sysex_data_32_patches, "random_patches_output.syx")
+
+
+if __name__ == '__main__':
+    example()
