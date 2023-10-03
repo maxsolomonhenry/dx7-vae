@@ -155,6 +155,16 @@ def write_sysex_to_file(sysex_data, filename):
     with open(filename, 'wb') as sysex_file:
         sysex_file.write(sysex_data)
 
+
+def make_cartridge(patches):
+    assert len(patches) == 32
+    packed_patches = bytearray()
+    for patch in patches:
+        packed_patches += pack_patch(patch)
+
+    # Generate the SysEx message for the selected patches.
+    return generate_sysex_with_corrected_checksum(packed_patches)
+
 def example_reconstruction():
     # Load the dataset from compact.bin
     dataset = generate_dataset("data/compact.bin")  # Replace with the actual path to compact.bin
