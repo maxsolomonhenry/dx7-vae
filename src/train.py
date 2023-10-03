@@ -9,8 +9,8 @@ def load_checkpoint(fpath, model, optimizer):
 
 
 def print_loss_metrics(train_loss, val_loss):
-    print(f"Trn:   {train_loss['loss']:.4f}\tMSE: {train_loss['mse']:.4f}\tKLD: {train_loss['kld']:.4f}")
-    print(f"Val:   {val_loss['loss']:.4f}\tMSE: {val_loss['mse']:.4f}\tKLD: {val_loss['kld']:.4f}\n")
+    print(f"Trn: {train_loss['loss']:.8f}\tMSE: {train_loss['mse']:.8f}\tKLD: {train_loss['kld']:.8f}")
+    print(f"Val: {val_loss['loss']:.8f}\tMSE: {val_loss['mse']:.8f}\tKLD: {val_loss['kld']:.8f}\n")
 
 
 def save_checkpoint(model, optimizer, fpath):
@@ -44,7 +44,7 @@ def train_one_epoch(model, train_loader, optimizer, device):
     return train_loss
 
 
-def vae_loss(x, y, mu, log_var, kld_weight=1.0):
+def vae_loss(x, y, mu, log_var, kld_weight=0.01):
 
     reconstruction_loss = F.mse_loss(x, y)
     kullback_liebler_loss = torch.mean(
