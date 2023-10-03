@@ -5,8 +5,7 @@ import torch.nn.functional as F
 def load_checkpoint(fpath, model, optimizer):
     checkpoint = torch.load(fpath)
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_statie_dict(checkpoint['optimizer_state_dict'])
-    return checkpoint['epoch'], checkpoint['loss']
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 def print_loss_metrics(train_loss, val_loss):

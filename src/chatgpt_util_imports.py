@@ -155,7 +155,7 @@ def write_sysex_to_file(sysex_data, filename):
     with open(filename, 'wb') as sysex_file:
         sysex_file.write(sysex_data)
 
-def example():
+def example_reconstruction():
     # Load the dataset from compact.bin
     dataset = generate_dataset("data/compact.bin")  # Replace with the actual path to compact.bin
 
@@ -180,4 +180,4 @@ def example():
 
 
 if __name__ == '__main__':
-    example()
+    example_reconstruction()
