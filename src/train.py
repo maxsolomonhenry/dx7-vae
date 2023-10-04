@@ -44,7 +44,7 @@ def train_one_epoch(model, train_loader, optimizer, device):
     return train_loss
 
 
-def vae_loss(x, y, mu, log_var, kld_weight=0.01):
+def vae_loss(x, y, mu, log_var, kld_weight=0.001):
 
     reconstruction_loss = F.mse_loss(x, y)
     kullback_liebler_loss = torch.mean(

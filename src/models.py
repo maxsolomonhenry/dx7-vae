@@ -13,23 +13,27 @@ class VAE(nn.Module):
 
     """
 
-    def __init__(self, n_features, n_hidden, n_latent):
+    def __init__(self, *dimensions):
         super(VAE, self).__init__()
 
-        self.encoder = nn.Sequential(
-            nn.Linear(n_features, n_hidden),
-            nn.ReLU(),
-            nn.Linear(n_hidden, n_latent),
-            nn.ReLU(),
-            )
-        
-        self.decoder = nn.Sequential(
-            nn.Linear(n_latent, n_latent),
-            nn.ReLU(),
-            nn.Linear(n_latent, n_hidden),
-            nn.ReLU(),
-            nn.Linear(n_hidden, n_features),
-        )
+        n_latent = dimensions[-1]
+
+        encoder_layers = []
+        decoder_layers = []
+        for i in range(len(dimensions) - 1):
+            j = len(dimensions) - (i + 1)
+            
+            encoder_layers.append(nn.Linear(dimensions[i], dimensions[i + 1]))
+            decoder_layers.append(nn.Linear(dimensions[j], dimensions[j - 1]))
+
+            if i >= len(dimensions) - 2:
+                continue
+
+            encoder_layers.append(nn.ReLU())
+            decoder_layers.append(nn.ReLU())
+    
+        self.encoder = nn.Sequential(*encoder_layers)
+        self.decoder = nn.Sequential(*decoder_layers)
 
         self.fc_mu = nn.Linear(n_latent, n_latent)
         self.fc_var = nn.Linear(n_latent, n_latent)
