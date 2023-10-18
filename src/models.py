@@ -64,3 +64,42 @@ class VAE(nn.Module):
 
         y = self.decode(z)
         return [y, mu, log_var]
+
+
+class AE(nn.Module):
+    """ 
+    Autoencoder class, following _An Empirical Comparison Between Autoencoders_
+        https://arxiv.org/pdf/2103.04874.pdf
+    """
+
+    def __init__(self, *dimensions):
+        super(AE, self).__init__()
+
+        encoder_layers = []
+        decoder_layers = []
+        for i in range(len(dimensions) - 1):
+            j = len(dimensions) - (i + 1)
+            
+            encoder_layers.append(nn.Linear(dimensions[i], dimensions[i + 1]))
+            decoder_layers.append(nn.Linear(dimensions[j], dimensions[j - 1]))
+
+            if i >= len(dimensions) - 2:
+                continue
+
+            encoder_layers.append(nn.ReLU())
+            decoder_layers.append(nn.ReLU())
+    
+        self.encoder = nn.Sequential(*encoder_layers)
+        self.decoder = nn.Sequential(*decoder_layers)
+
+    def encode(self, x):
+        return self.encoder(x)
+    
+    def decode(self, z):
+        return self.decoder(z)
+
+    def forward(self, x):
+        z = self.encode(x)
+        y = self.decode(z)
+
+        return y

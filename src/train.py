@@ -9,8 +9,7 @@ def load_checkpoint(fpath, model, optimizer):
 
 
 def print_loss_metrics(train_loss, val_loss):
-    print(f"Trn: {train_loss['loss']:.8f}\tMSE: {train_loss['mse']:.8f}\tKLD: {train_loss['kld']:.8f}")
-    print(f"Val: {val_loss['loss']:.8f}\tMSE: {val_loss['mse']:.8f}\tKLD: {val_loss['kld']:.8f}\n")
+    print(f"Trn: {train_loss:.8f}\tVal: {val_loss:.8f}\n")
 
 
 def save_checkpoint(model, optimizer, fpath):
@@ -21,25 +20,28 @@ def save_checkpoint(model, optimizer, fpath):
     torch.save(checkpoint, fpath)
 
 
-def train_one_epoch(model, train_loader, optimizer, device):
+def train_one_epoch(model, train_loader, optimizer, device, model_type):
     model.train()
-    train_loss = {key: 0.0 for key in ['loss', 'mse', 'kld']}
+    train_loss = 0.0
 
     for x in train_loader:
         x = x.to(device)
         optimizer.zero_grad()
 
-        y, mu, log_var = model(x)
-        loss = vae_loss(x, y, mu, log_var)
-        loss['loss'].backward()
+        if model_type == 'vae':
+            y, mu, log_var = model(x)
+            loss, _ = vae_loss(x, y, mu, log_var)
+        elif model_type == 'ae':
+            y = model(x)
+            loss = F.mse_loss(x, y)
+
+        loss.backward()
         optimizer.step()
 
-        for key in loss.keys():
-            train_loss[key] += loss[key].item()
+        train_loss += loss.item()
 
     # Report average loss.
-    for key in loss.keys():
-        train_loss[key] /= len(train_loader.dataset)
+    train_loss /= len(train_loader.dataset)
 
     return train_loss
 
@@ -52,24 +54,24 @@ def vae_loss(x, y, mu, log_var, kld_weight=0.001):
     )
 
     loss = reconstruction_loss + kld_weight * kullback_liebler_loss
-    return {'loss': loss, 'mse': reconstruction_loss, 'kld': kullback_liebler_loss}
+    return loss, {'mse': reconstruction_loss, 'kld': kullback_liebler_loss}
 
 
-def validate(model, val_loader, device):
+def validate(model, val_loader, device, model_type):
     model.eval()
-    val_loss = {key: 0.0 for key in ['loss', 'mse', 'kld']}
+    val_loss = 0.0
 
     with torch.no_grad():
         for x in val_loader:
             x = x.to(device)
 
-            y, mu, log_var = model(x)
-            loss = vae_loss(x, y, mu, log_var)
+            if model_type == 'vae':
+                y, mu, log_var = model(x)
+                loss, stats = vae_loss(x, y, mu, log_var)
+            elif model_type == 'ae':
+                y = model(x)
+                loss = F.mse_loss(x, y)
+            val_loss += loss.item()
 
-            for key in loss.keys():
-                val_loss[key] += loss[key].item()
-
-        for key in loss.keys():
-                val_loss[key] /= len(val_loader.dataset)
-
+        val_loss /= len(val_loader.dataset)
     return val_loss
