@@ -1,5 +1,30 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
+
+
+def collect_embeddings(model, dataset, device, model_type):
+    # Return all embeddings as a 2D numpy matrix.
+    model.eval()
+
+    embeddings = []
+
+    with torch.no_grad():
+        for x in dataset:
+            x = x.to(device)
+
+            if model_type == 'vae':
+                # Take means as embeddings.
+                y, z, _ = model(x)
+            elif model_type == 'ae':
+                y, z = model(x)
+
+            embeddings.append(z)
+
+    embeddings = [z.cpu().numpy() for z in embeddings]
+    embeddings = np.vstack(embeddings)
+
+    return embeddings
 
 
 def load_checkpoint(fpath, model, optimizer):
