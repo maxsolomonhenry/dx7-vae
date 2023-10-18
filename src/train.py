@@ -32,7 +32,7 @@ def train_one_epoch(model, train_loader, optimizer, device, model_type):
             y, mu, log_var = model(x)
             loss, _ = vae_loss(x, y, mu, log_var)
         elif model_type == 'ae':
-            y = model(x)
+            y, z = model(x)
             loss = F.mse_loss(x, y)
 
         loss.backward()
@@ -69,7 +69,7 @@ def validate(model, val_loader, device, model_type):
                 y, mu, log_var = model(x)
                 loss, stats = vae_loss(x, y, mu, log_var)
             elif model_type == 'ae':
-                y = model(x)
+                y, z = model(x)
                 loss = F.mse_loss(x, y)
             val_loss += loss.item()
 

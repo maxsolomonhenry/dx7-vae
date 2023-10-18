@@ -102,4 +102,4 @@ class AE(nn.Module):
         z = self.encode(x)
         y = self.decode(z)
 
-        return y
+        return y, z
