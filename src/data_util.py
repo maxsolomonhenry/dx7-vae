@@ -10,7 +10,7 @@ def clean_data(df):
     return df
 
 
-def _get_categorical_columns():
+def _get_categorical_features():
     categorical_columns = []
     for op in range(1, 7):
         categorical_columns += [f"OP{op} KBD LEV SCL LFT CURVE"]
@@ -21,7 +21,7 @@ def _get_categorical_columns():
     return categorical_columns
 
 def onehot_decode(df):
-    for feature in _get_categorical_columns():
+    for feature in _get_categorical_features():
         onehot_group = [col for col in df.columns if col.startswith(feature)]
 
         # Extract the one-hot number from the column name (e.g., "TEST_3" -> 3).
@@ -38,7 +38,7 @@ def onehot_decode(df):
 
 def onehot_encode(df):
     # Turn all categorical data into one-hot vectors.
-    return pd.get_dummies(df, columns=_get_categorical_columns())
+    return pd.get_dummies(df, columns=_get_categorical_features())
 
 
 class PatchDataset(Dataset):
@@ -51,8 +51,18 @@ class PatchDataset(Dataset):
         self._means = df.mean().values
         self._stds = df.std().values
 
-        df = df - df.mean()
-        df = df / df.std()
+        # Force one-hot vector means and stds so they are not standardized.
+        onehot_columns = []
+        for feature in _get_categorical_features():
+            onehot_columns += [col for col in df.columns if col.startswith(feature)]
+
+        onehot_col_idx = [df.columns.get_loc(col) for col in onehot_columns]
+
+        self._means[onehot_col_idx] = 0
+        self._stds[onehot_col_idx] = 1
+
+        df = df - self._means
+        df = df / self._stds
 
         self.df = torch.tensor(df.values, dtype=torch.float32)
 
