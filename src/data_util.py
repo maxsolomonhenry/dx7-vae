@@ -21,12 +21,25 @@ def _get_categorical_features():
     return categorical_columns
 
 def onehot_decode(df):
+
+    # Prase differential behaviour to work with either DataFrames or Series.
+    # This makes the function a little messy. Sorry.
+
+    is_dataframe = isinstance(df, pd.DataFrame)
+
+    input_columns = df.columns if is_dataframe else df.index
+    which_axis = 1 if is_dataframe else 0
+
     for feature in _get_categorical_features():
-        onehot_group = [col for col in df.columns if col.startswith(feature)]
+        onehot_group = [col for col in input_columns if col.startswith(feature)]
 
         # Extract the one-hot number from the column name (e.g., "TEST_3" -> 3).
-        which_category = df[onehot_group].idxmax(axis=1)
-        category_number = which_category.apply(lambda name: int(name.split("_")[-1]))
+        which_category = df[onehot_group].idxmax(axis=which_axis)
+
+        if is_dataframe:
+            category_number = which_category.apply(lambda name: int(name.split("_")[-1]))
+        else:
+            category_number = int(which_category.split("_")[-1])
 
         # Replace original feature column with a numerical value.
         df[feature] = category_number
