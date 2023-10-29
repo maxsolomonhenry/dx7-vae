@@ -61,11 +61,13 @@ class PatchDataset(Dataset):
         if 'VOICE NAME' in df.keys():
             df = df.drop(columns=['VOICE NAME'])
         
+        self.decoder_info = self.get_decoder_info(df.keys())
+
         self._parameter_names = df.keys()
         self._means = df.mean().values
         self._stds = df.std().values
 
-        # Force one-hot vector means and stds so they are not standardized.
+        # Manually set one-hot vector means and stds so they are not standardized.
         onehot_columns = []
         for feature in _get_categorical_features():
             onehot_columns += [col for col in df.columns if col.startswith(feature)]
@@ -85,6 +87,29 @@ class PatchDataset(Dataset):
     
     def __getitem__(self, idx):
         return self.df[idx]
+    
+    def get_decoder_info(self, keys):
+        # Determine n_neurons for each decoder head.
+
+        base = ""
+        ctr = 0
+        all_counts = []
+
+        for key in keys:
+            new_base = key.split("_")[0]
+
+            if new_base == base:
+                ctr += 1
+            else:
+                all_counts.append(ctr + 1)
+                ctr = 0
+                base = new_base
+
+        for i, element in enumerate(all_counts):
+            if element > 1:
+                break
+
+        return [i + 1] + all_counts[i:]
     
     def get_restorer(self):
         def restore(x):
