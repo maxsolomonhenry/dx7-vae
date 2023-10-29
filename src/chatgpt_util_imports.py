@@ -13,6 +13,7 @@ For an outline of the DX7 SysEx patch structure, see this useful note:
 
 import random
 
+
 def unpack_patch(bulk):
     def read_byte(offset, mask=0b01111111, shift=0):
         return (bulk[offset] & mask) >> shift

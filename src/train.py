@@ -59,6 +59,14 @@ def train_one_epoch(model, train_loader, optimizer, device, model_type):
         elif model_type == 'ae':
             y, z = model(x)
             loss = F.mse_loss(x, y)
+        elif model_type == 'mixed_ae':
+            y, z = model(x)
+
+            """
+            """
+            loss = F.mse_loss(x, y) # TODO FIX THIS!!!!!!!!
+            """
+            """
 
         loss.backward()
         optimizer.step()

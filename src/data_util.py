@@ -61,7 +61,7 @@ class PatchDataset(Dataset):
         if 'VOICE NAME' in df.keys():
             df = df.drop(columns=['VOICE NAME'])
         
-        self.decoder_info = self.get_decoder_info(df.keys())
+        self.decoder_spec = self.get_decoder_spec(df.keys())
 
         self._parameter_names = df.keys()
         self._means = df.mean().values
@@ -88,7 +88,7 @@ class PatchDataset(Dataset):
     def __getitem__(self, idx):
         return self.df[idx]
     
-    def get_decoder_info(self, keys):
+    def get_decoder_spec(self, keys):
         # Determine n_neurons for each decoder head.
 
         base = ""
