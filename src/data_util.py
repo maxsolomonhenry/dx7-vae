@@ -105,11 +105,13 @@ class PatchDataset(Dataset):
                 ctr = 0
                 base = new_base
 
+        all_counts.append(ctr + 1)
+
         for i, element in enumerate(all_counts):
             if element > 1:
                 break
 
-        return [i + 1] + all_counts[i:]
+        return [i - 1] + all_counts[i:]
     
     def get_restorer(self):
         def restore(x):

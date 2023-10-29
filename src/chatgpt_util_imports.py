@@ -39,7 +39,7 @@ def unpack_patch(bulk):
             f"{op} KBD LEV SCL RHT DEPTH": read_byte(base_offset + 10),
             f"{op} KBD LEV SCL LFT CURVE": read_byte(base_offset + 11, 0b00000011),
             f"{op} KBD LEV SCL RHT CURVE": read_byte(base_offset + 11, 0b00001100, 2),
-            f"{op} OSC DETUNE": read_byte(base_offset + 12, 0b00000111),
+            f"{op} OSC DETUNE": read_byte(base_offset + 12, 0b00001111),
             f"{op} KBD RATE SCALING": read_byte(base_offset + 12, 0b00111000, 3),
             f"{op} KEY VEL SENSITIVITY": read_byte(base_offset + 13, 0b00111000, 3),
             f"{op} AMP MOD SENSITIVITY": read_byte(base_offset + 13, 0b00000011),
@@ -60,13 +60,13 @@ def unpack_patch(bulk):
         "PITCH EG level 4": read_byte(109),
         "ALGORITHM #": read_byte(110, 0b00111111),
         "OSCILLATOR SYNC": read_byte(111, 0b00000100, 2),
-        "FEEDBACK": read_byte(111, 0b00000011),
+        "FEEDBACK": read_byte(111, 0b00000111),
         "LFO SPEED": read_byte(112),
         "LFO DELAY": read_byte(113),
         "LFO PITCH MOD DEPTH": read_byte(114),
         "LFO AMP MOD DEPTH": read_byte(115),
         "LFO SYNC": read_byte(116, 0b00000001),
-        "LFO WAVEFORM": read_byte(116, 0b00111000, 3),
+        "LFO WAVEFORM": (read_byte(116, 0b00111000) >> 3),
         "PITCH MOD SENSITIVITY": read_byte(116, 0b01110000, 4),
         "TRANSPOSE": read_byte(117),
         "VOICE NAME": ''.join([read_char(i) for i in range(118, 128)])
@@ -127,12 +127,12 @@ def pack_patch(parameters):
     write_byte(108, parameters["PITCH EG level 3"])
     write_byte(109, parameters["PITCH EG level 4"])
     packed_data[110] = parameters["ALGORITHM #"] & 0x3F
-    packed_data[111] = pack_byte(parameters["FEEDBACK"], parameters["OSCILLATOR SYNC"])
+    packed_data[111] = pack_byte(parameters["OSCILLATOR SYNC"], parameters["FEEDBACK"])
     write_byte(112, parameters["LFO SPEED"])
     write_byte(113, parameters["LFO DELAY"])
     write_byte(114, parameters["LFO PITCH MOD DEPTH"])
     write_byte(115, parameters["LFO AMP MOD DEPTH"])
-    packed_data[116] = ((parameters["PITCH MOD SENSITIVITY"] << 4) & 0x70) | (parameters["LFO WAVEFORM"] << 1) | parameters["LFO SYNC"]
+    packed_data[116] = ((parameters["PITCH MOD SENSITIVITY"] << 4) & 0x70) | (parameters["LFO WAVEFORM"] & 0x07) | parameters["LFO SYNC"]
     write_byte(117, parameters["TRANSPOSE"])
 
     # Handle the voice name
@@ -143,6 +143,7 @@ def pack_patch(parameters):
 
     return packed_data
 
+
 def generate_sysex_with_corrected_checksum(data):
     # Create a SysEx message for 32 patches
     sysex_start = bytes([0xF0, 0x43, 0x00, 0x09, 0x20, 0x00])
@@ -150,6 +151,7 @@ def generate_sysex_with_corrected_checksum(data):
     sysex_end = bytes([checksum, 0xF7])
 
     return sysex_start + data + sysex_end
+
 
 def write_sysex_to_file(sysex_data, filename):
     with open(filename, 'wb') as sysex_file:
@@ -164,6 +166,7 @@ def make_cartridge(patches):
 
     # Generate the SysEx message for the selected patches.
     return generate_sysex_with_corrected_checksum(packed_patches)
+
 
 def example_reconstruction():
     # Load the dataset from compact.bin
