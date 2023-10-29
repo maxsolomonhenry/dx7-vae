@@ -4,12 +4,6 @@ import torch
 from torch.utils.data import Dataset
 
 
-def clean_data(df):
-    # Remove patches with unrecognized operator algorithm number.
-    df = df[df['ALGORITHM #'] <= 31]
-    return df
-
-
 def _get_categorical_features():
     categorical_columns = []
     for op in range(1, 7):
@@ -19,6 +13,13 @@ def _get_categorical_features():
 
     categorical_columns += ["ALGORITHM #", "OSCILLATOR SYNC", "LFO SYNC", "LFO WAVEFORM"]
     return categorical_columns
+
+
+def clean_data(df):
+    # Remove patches with unrecognized operator algorithm number.
+    df = df[df['ALGORITHM #'] <= 31]
+    return df
+
 
 def onehot_decode(df):
 
