@@ -33,6 +33,24 @@ def load_checkpoint(fpath, model, optimizer):
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
+def mixed_loss(x, y):
+
+    # TODO: Update this to not be hard-coded.
+    DECODER_SPEC = [
+        123, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 32, 2, 2, 8
+    ]
+
+    idx = np.array([0] + DECODER_SPEC).cumsum()
+
+    # Add loss for continuous data.
+    loss = F.mse_loss(x[:, :idx[1]], y[:, :idx[1]])
+
+    # Add categorical loss.
+    for i in range(len(idx) - 1):
+        
+
+
+
 def print_loss_metrics(train_loss, val_loss):
     print(f"Trn: {train_loss:.8f}\tVal: {val_loss:.8f}\n")
 
@@ -61,12 +79,7 @@ def train_one_epoch(model, train_loader, optimizer, device, model_type):
             loss = F.mse_loss(x, y)
         elif model_type == 'mixed_ae':
             y, z = model(x)
-
-            """
-            """
-            loss = F.mse_loss(x, y) # TODO FIX THIS!!!!!!!!
-            """
-            """
+            loss = mixed_loss(x, y)
 
         loss.backward()
         optimizer.step()
@@ -104,6 +117,9 @@ def validate(model, val_loader, device, model_type):
             elif model_type == 'ae':
                 y, z = model(x)
                 loss = F.mse_loss(x, y)
+            elif model_type == 'mixed_ae':
+                y, z = model(x)
+                loss = F.mse_loss(x, y) # TODO FIX THIS!!!!!!!!
             val_loss += loss.item()
 
         val_loss /= len(val_loader.dataset)

@@ -154,8 +154,6 @@ class MixedAE(nn.Module):
 
         return torch.cat(y, dim=1)
 
-
-
     def forward(self, x):
         z = self.encode(x)
         y = self.decode(z)
