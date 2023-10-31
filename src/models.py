@@ -110,7 +110,7 @@ class MixedAE(nn.Module):
     Autoencoder class allowing for mixed continuous and categorical data.
     """
 
-    def __init__(self, decoder_spec, *dimensions):
+    def __init__(self, *dimensions):
         super().__init__()
 
         encoder_layers = []
@@ -128,27 +128,13 @@ class MixedAE(nn.Module):
             decoder_layers.append(nn.ReLU())
 
         self.encoder = nn.Sequential(*encoder_layers)
-        self.decoder_body = nn.Sequential(*decoder_layers[:-1])
-
-        n_prefeatures = self.decoder_body[-2].out_features
-        
-        decoder_heads = []
-        for n_predict in decoder_spec:
-            decoder_heads.append(nn.Linear(n_prefeatures, n_predict))
-
-        self.decoder_heads = nn.ModuleList(decoder_heads)
+        self.decoder = nn.Sequential(*decoder_layers)
 
     def encode(self, x):
         return self.encoder(x)
     
     def decode(self, z):
-        z = self.decoder_body(z)
-
-        y = []
-        for head in self.decoder_heads:
-            y.append(head(z))
-
-        return torch.cat(y, dim=1)
+        return self.decoder(z)
 
     def forward(self, x):
         z = self.encode(x)

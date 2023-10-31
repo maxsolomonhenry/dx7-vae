@@ -18,6 +18,8 @@ def collect_embeddings(model, dataset, device, model_type):
                 y, z, _ = model(x)
             elif model_type == 'ae':
                 y, z = model(x)
+            elif model_type == 'mixed_ae':
+                y, z = model(x)
 
             embeddings.append(z)
 
@@ -52,8 +54,8 @@ def mixed_loss(x, y):
         idx_out = idx[i + 1]
 
         cross_entropy_loss += F.cross_entropy(
-            x[:, idx_in:idx_out],
-            y[:, idx_in:idx_out]
+            y[:, idx_in:idx_out],
+            x[:, idx_in:idx_out]
         )
 
     loss = mse_loss + cross_entropy_loss
