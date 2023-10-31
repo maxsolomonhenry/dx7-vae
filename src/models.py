@@ -132,13 +132,9 @@ class MixedAE(nn.Module):
 
         n_prefeatures = self.decoder_body[-2].out_features
         
-        decoder_heads = [nn.Linear(n_prefeatures, decoder_spec[0])]
-        for n_predict in decoder_spec[1:]:
-            decoder_heads.append(
-                nn.Sequential(
-                    nn.Linear(n_prefeatures, n_predict), nn.Softmax()
-                )
-            )
+        decoder_heads = []
+        for n_predict in decoder_spec:
+            decoder_heads.append(nn.Linear(n_prefeatures, n_predict))
 
         self.decoder_heads = nn.ModuleList(decoder_heads)
 

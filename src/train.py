@@ -40,16 +40,26 @@ def mixed_loss(x, y):
         123, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 32, 2, 2, 8
     ]
 
-    idx = np.array([0] + DECODER_SPEC).cumsum()
+    idx = np.array([0] + DECODER_SPEC).cumsum()[1:]
 
     # Add loss for continuous data.
-    loss = F.mse_loss(x[:, :idx[1]], y[:, :idx[1]])
+    mse_loss = F.mse_loss(x[:, :idx[0]], y[:, :idx[0]])
 
     # Add categorical loss.
-    for i in range(len(idx) - 1):
-        
+    cross_entropy_loss = 0
+    for i in range(0, len(idx) - 1):
+        idx_in = idx[i]
+        idx_out = idx[i + 1]
 
+        cross_entropy_loss += F.cross_entropy(
+            x[:, idx_in:idx_out],
+            y[:, idx_in:idx_out]
+        )
 
+    loss = mse_loss + cross_entropy_loss
+    info = {'mse_loss': mse_loss, 'cross_entropy_loss': cross_entropy_loss}
+
+    return loss, info
 
 def print_loss_metrics(train_loss, val_loss):
     print(f"Trn: {train_loss:.8f}\tVal: {val_loss:.8f}\n")
@@ -79,7 +89,7 @@ def train_one_epoch(model, train_loader, optimizer, device, model_type):
             loss = F.mse_loss(x, y)
         elif model_type == 'mixed_ae':
             y, z = model(x)
-            loss = mixed_loss(x, y)
+            loss, _ = mixed_loss(x, y)
 
         loss.backward()
         optimizer.step()
@@ -119,7 +129,7 @@ def validate(model, val_loader, device, model_type):
                 loss = F.mse_loss(x, y)
             elif model_type == 'mixed_ae':
                 y, z = model(x)
-                loss = F.mse_loss(x, y) # TODO FIX THIS!!!!!!!!
+                loss, _ = mixed_loss(x, y)
             val_loss += loss.item()
 
         val_loss /= len(val_loader.dataset)
